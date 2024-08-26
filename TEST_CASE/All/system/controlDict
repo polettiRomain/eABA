@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include        "./system/domainSetting"
+
+libs           ("liboverset.so" "libMyrigidBodyDynamics2.so" "libMyrigidBodyMeshMotion2.so");
+/*libs (overset
+ 	fvMotionSolvers
+		"libmydynamicMesh.so");
+*/
+application     overPimpleDyMFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1; //#eval "$N_cycles / $flap_freq + 1e-6";
+
+deltaT          0.0000025;//0.00025;
+
+/*
+writeControl    timeStep;
+writeInterval   1;
+*/
+
+writeControl    adjustableRunTime;
+writeInterval   #eval "1/$flap_freq";
+
+
+purgeWrite      200;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      fixed;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+//stopAt noWriteNow;
+
+adjustTimeStep  yes;
+
+maxCo           1;
+
+
+functions
+{
+#include "forceCoeffs"
+#include "forces"
+}
+
+
+// ************************************************************************* //

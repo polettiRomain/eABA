@@ -1,0 +1,145 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.0.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include        "./system/domainSetting"
+
+//scale   0.001;
+//convertToMeters 0.001;
+
+Ntimes 4;
+Nztimes 2;
+
+// Which of the steps to run
+castellatedMesh true;
+snap            false;
+addLayers       false;
+
+//points for refinement region
+scaling 0.001;
+
+
+X0_BF #eval "$factorSpan_XD*$span/2*$scaling - $Ntimes*$factorChord*15.38*$scaling*1.4";
+Y0_BF  #eval "$factorSpan_XD*$span/2*$scaling - 3*$factorChord*$chord*$scaling*1.4*($span/$chord/3.25)";
+//XY1_BF #eval "$factorSpan_XD*$span/2*$scaling + $Ntimes*$factorChord*$chord*$scaling";
+X1_BF #eval "$factorSpan_XD*$span/2*$scaling + $Ntimes*$factorChord*15.38*$scaling*1.4";
+Y1_BF #eval "$factorSpan_XD*$span/2*$scaling + $Ntimes*$factorChord*$chord*$scaling*1.4*($span/$chord/3.25) + ($deltaR - 22.5)*$scaling";
+
+XYmid #eval "$X0_BF/2+$X1_BF/2";
+
+Z0  0.15; //#eval "$factorSpan_ZD*$span/2*$scaling - $Nztimes*$factorChord*$chord*2*$scaling+50*$scaling";
+Z1  0.35; //#eval "$factorSpan_ZD*$span/2*$scaling + $Nztimes*$factorChord*$chord*$scaling+50*$scaling";
+Zmid #eval "$Z0/2+$Z1/2";
+
+geometry
+{
+    refineBox       // name of the geometrical entity
+    {
+        type            searchableBox;
+        min             ($X0_BF $Y0_BF $Z0);
+        max             ($X1_BF $Y1_BF $Z1);
+    }
+
+};
+
+castellatedMeshControls
+{
+    maxLocalCells 1000000;
+    maxGlobalCells 2000000;
+    minRefinementCells 0;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 5;
+    features
+    (
+    );
+    refinementSurfaces
+    {  
+
+    }
+
+    resolveFeatureAngle 30;
+    refinementRegions
+    {
+    refineBox
+    	{
+   	 mode        inside;
+   	 levels      ((1.0 4));
+   	 }
+    }
+    locationInMesh ($XYmid $XYmid $Zmid);
+    allowFreeStandingZoneFaces no;
+}
+
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 1.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+
+
+    expansionRatio 1.2;
+//    finalLayerThickness 1e-9;
+    finalLayerThickness 0.5;
+    //finalLayerRatio 0.01;
+    minThickness 0.3;
+    nGrow 0;
+    featureAngle 30;
+    nRelaxIter 10;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals 3;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle 40;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 100;
+    nRelaxedIter 20;
+}
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-200;
+    minTetQuality 1e-9;
+    minArea -1;
+    minTwist 0.05;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+
+    nSmoothScale 4;
+    errorReduction 0.75;
+
+    relaxed
+    {
+        maxNonOrtho 75;
+    }
+}
+
+debug 0;
+mergeTolerance 1e-6;
+
+// ************************************************************************* //

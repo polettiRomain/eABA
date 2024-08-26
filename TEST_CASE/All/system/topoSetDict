@@ -1,0 +1,89 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+// c0=background
+   {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  regionToCell;
+        insidePoints ((0.02 0.02 0.005)); //((0.001 0.001 0.005)); //((-4.999 0 -3.999));
+    }
+// c1=copy of back
+    {
+        name    c1;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     c0;
+    }
+// c1= invert back = wing + body
+    {
+        name    c1;
+        type    cellSet;
+        action  invert;
+    }
+    {
+        name    cWingAndBody;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     c1;
+    }
+// c2 = wing 
+    {
+      name    c2;
+      type    cellSet;
+      action  new;
+      source  regionsToCell;
+      set     c1;
+      insidePoints ((0 0 0));
+    }
+// c1 = c1 - c2 = body
+    {
+      name    c1;
+      type    cellSet;
+      action  subtract;
+      source  cellToCell;
+
+      set     c2;
+    }
+    {
+    name    movingZone;
+    type    cellZoneSet;
+    action  new;
+    source setToCellZone;
+    sourceInfo
+    {
+        set c1;           // name of cellSet
+    }
+    }
+    {
+    name    movingZone4;
+    type    cellZoneSet;
+    action  new;
+    source setToCellZone;
+    sourceInfo
+    {
+        set c2;           // name of cellSet
+    }
+    }
+
+);
+
+// ************************************************************************* //

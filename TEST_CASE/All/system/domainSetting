@@ -1,0 +1,29 @@
+
+deltaR 22.5;
+span 50;
+chord 15.38;
+thickness 0.5;
+
+
+factorSpan_XD 10;
+factorSpan_YD 10;
+factorSpan_ZD 10;
+
+
+factorSpan_XB1 10;
+factorSpan_YB1 10;
+factorSpan_ZB1 10;
+
+
+factorChord 2;
+
+
+flap_freq 10.2;
+N_cycles 2;
+
+
+A_phi 60;
+A_alpha 45;
+alpha_dev 0.0;
+K_phi 0.01;
+K_alpha 0.01;

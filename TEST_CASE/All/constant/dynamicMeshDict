@@ -1,0 +1,158 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2206                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include        "./system/domainSetting"
+
+
+dynamicFvMesh       dynamicOversetFvMesh;
+
+rho             rhoInf;
+rhoInf          1.2;
+
+solvers
+{
+	// Moving background based on CofG displacement of body 2 (= massless body after Px,Pz joints) 
+	backgroundZone
+	{
+		motionSolverLibs (fvMotionSolvers);
+
+		motionSolver            solidBody;
+		solidBodyMotionFunction drivenLinearMotion;
+
+		cellSet                 c0;
+		cOfGdisplacement        CofG;
+
+	}
+	
+    // Drone multibody definition
+    Body-Wing
+    {
+        motionSolverLibs    (rigidBodyMeshMotion); 
+        motionSolver         rigidBodyMotion;
+
+        report              on;
+        cellSet             cWingAndBody;
+        cOfGdisplacement    CofG;
+        bodyIdCofG      2;
+        rho             rhoInf;
+        rhoInf          1.2;
+        solver
+        {
+            type symplectic;
+        }
+
+        g  	(0 0 -9.81);
+        accelerationRelaxation 1; //0.8;
+        accelerationDamping    1; //0.9;
+        nIter   1;
+
+        bodies
+        {
+            Body
+            {
+                type            rigidBody;
+                parent          root;
+                mass            1.5e-03;
+
+                centreOfMass     (0 0 0);
+                inertia        (6e-6 0 0 6e-6 0 6e-6);
+                // Transformation tensor and centre of rotation
+                transform       (1 0 0 0 1 0 0 0 1)(0 0 0);
+                joint
+                {
+                    type            composite;
+
+                    joints
+                    (
+                        {
+                            type Pz; // 0
+                        }
+                        {
+                            type Px; //1
+                        }
+                        {
+                            type Ry; //2
+                        }
+
+                    );
+                }
+                patches
+                (
+                    body
+                );
+                innerDistance   100; // large to avoid there use
+                outerDistance   200;
+            }
+            Wing
+            {
+                type            rigidBody;
+                parent          Body;
+                centreOfMass    (0 0.0475 0);
+                mass            0.15e-03;
+                transform       (1 0 0 0 1 0 0 0 1) (0 0 0);
+                inertia         (1e-8 0 0 2e-9 0 1e-8);
+                patches
+                (
+                    hole
+                );
+                innerDistance   100;
+                outerDistance   200;
+                joint
+                {
+                    type            composite;
+
+                    joints
+                    (   
+			{
+                            type Rz; // 3, phi
+                        }
+
+                        {
+                            type Ry; // 4, alpha
+                        }
+
+                    );
+                }
+            } // end of Wing
+        } // end of list of bodies
+        restraints
+        {
+        }
+        // Wing motion 
+        ImposedMotion
+            {
+                flappingAndPitching
+                {
+                    type              wangParametrization;
+
+		    jointList (3 4);
+                    motionType        "midStart";
+
+                    body              Wing;
+                    Aphi              -1.30899694; 
+                    fphi              20;
+                    Kphi 0.01;
+
+                    Aalpha            0.78;
+                    falpha            20;
+                    Kalpha            0.01;
+	
+		    initialConditions (0 0);
+                 }
+             }
+    } // end of drone
+} // end of solvers (moving back + drone)
+
+// ************************************************************************* //

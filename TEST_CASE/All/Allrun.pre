@@ -1,0 +1,40 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Cleaning
+if [ -f log.blockMesh ]; then
+    rm log.*
+    echo "log files removed"
+fi 
+
+# Create background mesh
+runApplication blockMesh
+
+# Run snappy for refinement region
+runApplication snappyHexMesh -overwrite
+
+# Center the bm mesh around (0,0,0)
+runApplication transformPoints -translate '(-0.25 -0.25 -0.25)'
+
+# Add the component body mesh
+runApplication -s 1 mergeMeshes . ../body -overwrite
+
+# Add the component wing mesh
+runApplication -s 2 mergeMeshes . ../wing -overwrite
+
+# Define the sets/zones based on the body and wing cells. Used by setFields to defines zoneIDs
+runApplication topoSet
+
+# Cleaning
+if [ -d "0.000000" ]; then
+    rm -r "0.000000"
+    echo "Folder 0 removed"
+fi 
+cp -r 0.orig 0.000000
+
+# Use cellSets to write zoneID
+runApplication setFields 
+
+#------------------------------------------------------------------------------

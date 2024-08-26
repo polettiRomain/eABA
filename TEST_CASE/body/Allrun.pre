@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+if [ -f log.blockMesh ]; then
+    rm log.*
+    echo "log files removed"
+fi 
+
+runApplication blockMesh
+
+#------------------------------------------------------------------------------

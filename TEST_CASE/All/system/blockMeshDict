@@ -1,0 +1,115 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include        "./system/domainSetting"
+
+scale   0.001;
+scaling 0.001;
+
+Ntimes 4;
+Nztimes 2;
+
+// square domain
+domainL    #calc "$chord*10";  // *10/2
+domain_X0 #eval "$factorSpan_XD*$span/2 - $factorSpan_XB1*$span/2";
+domain_Y0 #eval "$factorSpan_XD*$span/2 - $factorSpan_XB1*$span/2 +($deltaR - 22.5)";
+domain_X1 #eval "$domain_X0+$factorSpan_XB1*$span";
+domain_Y1 #eval "$domain_Y0+$factorSpan_XB1*$span +($deltaR - 22.5)";
+//domain_Y1 #eval "$domain_XY0+$factorSpan_YB1*$span";
+//domain_XY0 #eval "$factorSpan_XD*$span/2-$domainL";
+//domain_XY1 #eval "$domain_XY0+$domainL*2";
+
+
+// BF points
+//XY0_BF #eval "$factorSpan_XD*$span/2 - $Ntimes*$factorChord*$chord";
+X0_BF #eval "$factorSpan_XD*$span/2 - $Ntimes*$factorChord*$chord";
+Y0_BF #eval "$factorSpan_XD*$span/2 - $Ntimes*$factorChord*$chord/2";
+XY1_BF #eval "$factorSpan_XD*$span/2 + $Ntimes*$factorChord*$chord";
+//XY0_BF #eval "$factorSpan_XD*$span/2-$domainL/5";
+//XY1_BF #eval "$factorSpan_XD*$span/2+$domainL/5";
+
+//BF
+Z0  #eval "$factorSpan_ZD*$span/2 - $Nztimes*$factorChord*$chord*2";
+Z1  #eval "$factorSpan_ZD*$span/2 + $Nztimes*$factorChord*$chord";
+
+Z00 #eval "$factorSpan_ZD*$span/2 - $factorSpan_ZB1*$span/2";
+Z11 #eval "$factorSpan_ZD*$span/2 + $factorSpan_ZB1*$span/2";
+
+
+// middle block
+Nx0 8;
+Ny0 8;
+
+// Upper and lower block
+Nz0 8;
+
+vertices
+(
+	($domain_X0 $domain_Y0 $Z00)
+	($domain_X1 $domain_Y0 $Z00)
+	($domain_X1 $domain_Y1 $Z00)
+	($domain_X0 $domain_Y1 $Z00)
+	($domain_X0 $domain_Y0 $Z11)
+	($domain_X1 $domain_Y0 $Z11)
+	($domain_X1 $domain_Y1 $Z11)
+	($domain_X0 $domain_Y1 $Z11)
+);
+
+
+blocks
+(
+	hex (0 1 2 3 4 5 6 7)  ($Nx0 $Ny0 $Nz0) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    overset3 // body
+    {
+        type        overset;
+        faces
+        ();
+    }
+    overset2 //wing
+    {
+        type        overset;
+        faces
+        ();
+    }
+   walls
+    {
+        type        patch;
+        faces
+        (
+        	(1 2 6 5)
+               (0 4 7 3)
+               (2 3 7 6)
+               (0 1 5 4)
+               (4 5 6 7)
+               (0 3 2 1)
+
+	);
+
+    }
+);
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

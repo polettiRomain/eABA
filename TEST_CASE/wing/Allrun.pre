@@ -1,0 +1,35 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Definition of the wing
+# Position. Mid-stroke, with pitching angle of 45°
+
+span=$(grep span ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+chord=$(grep chord ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+deltaR=$(grep deltaR ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+
+factorChord=$(grep factorChord ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+
+factorSpan_XD=$(grep factorSpan_XD ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+factorSpan_YD=$(grep factorSpan_YD ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+factorSpan_ZD=$(grep factorSpan_ZD ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
+
+echo $factorSpan_XD
+
+export deltaRmm=$(awk "BEGIN {print $deltaR / 1000}")
+export vector1="($deltaRmm 0.0 0.0)"
+echo $vector1
+
+
+runApplication blockMesh 
+runApplication transformPoints -translate "$vector1" 
+rm log*
+runApplication transformPoints -rollPitchYaw '(0 0 90)' 
+rm log*
+runApplication transformPoints -rollPitchYaw '(0 -45 0)' #Rotate by '(roll pitch yaw)' degrees
+rm log*
+
+
+#------------------------------------------------------------------------------
