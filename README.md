@@ -1,4 +1,4 @@
-This code extends the Articulated-Body Algorithm implemented in OpenFOAM v2206. .
+## This code extends the Articulated-Body Algorithm implemented in OpenFOAM v2206. 
 The complete information are given in ...
 
 **How to use it? **
