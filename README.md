@@ -13,4 +13,5 @@ This GitHub contains the library and a test case. The test case is a body and wi
    libs           ("liboverset.so" "libMyrigidBodyDynamics2.so" "libMyrigidBodyMeshMotion2.so");
 
 ## Running
-The test case can be run using the Allrun script. 
+1. Load locally OpenFOAM v2206
+2. Run the with the Allrun script in the TEST_CASE folder 
