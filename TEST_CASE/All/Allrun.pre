@@ -9,6 +9,12 @@ if [ -f log.blockMesh ]; then
     echo "log files removed"
 fi 
 
+if [ -d processor0 ]; then
+    rm -rf processor*
+    echo "All log files removed from the log directory"
+fi
+
+
 # Create background mesh
 runApplication blockMesh
 
@@ -36,5 +42,7 @@ cp -r 0.orig 0.000000
 
 # Use cellSets to write zoneID
 runApplication setFields 
+
+runApplication decomposePar
 
 #------------------------------------------------------------------------------

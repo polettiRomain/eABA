@@ -3,8 +3,14 @@ cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
 #------------------------------------------------------------------------------
 
+# Cleaning
+if [ -f log.blockMesh ]; then
+    rm log.*
+    echo "log files removed"
+fi 
+
 # Definition of the wing
-# Position. Mid-stroke, with pitching angle of 45°
+# Mid-stroke, with pitching angle of 45°
 
 span=$(grep span ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
 chord=$(grep chord ../All/system/domainSetting | cut -d' ' -f2 | cut -d';' -f1)
@@ -25,11 +31,11 @@ echo $vector1
 
 runApplication blockMesh 
 runApplication transformPoints -translate "$vector1" 
-rm log*
+mv log.transformPoints log.transformPoints1
 runApplication transformPoints -rollPitchYaw '(0 0 90)' 
-rm log*
+mv log.transformPoints log.transformPoints2
 runApplication transformPoints -rollPitchYaw '(0 -45 0)' #Rotate by '(roll pitch yaw)' degrees
-rm log*
+mv log.transformPoints log.transformPoints3
 
 
 #------------------------------------------------------------------------------

@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+echo Preparing body grid ...
+cd ./body
+./Allrun.pre 
+echo 
+
+echo Preparing wing grid ...
+cd ../wing
+./Allrun.pre 
+echo
+
+echo Preparing complete grid ...
+cd ../All
+./Allrun.pre 
+
+mpirun -np 28 overPimpleDyMFoam -parallel >log.overPimpleDyMFoam
+#------------------------------------------------------------------------------
