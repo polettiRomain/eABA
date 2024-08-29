@@ -1,6 +1,6 @@
 ## Basics
 This library extends the Articulated-Body Algorithm implemented in OpenFOAM v2206. 
-It allows to enforce the kinematics of some joints of the system while the rest of the multibody system is driven by the Newton-Euler equations. 
+It allows to enforce the kinematics of some joints of a multibody system while the rest is driven by the Newton-Euler equations. 
 Complete information are found in the paper: 'insert doi'
 
 ## Folder description
