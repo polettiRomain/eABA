@@ -8,9 +8,10 @@ This GitHub contains the src library and a test case. The test case is a simplif
 
 ## Installation
 1. Copy the given rigidBodyDynamics and rigidBodyMeshMotion in your local src folder
-2. Compile with wmake 
+2. Compile first rigidBodyMeshMotion and then rigidBodyDynamics
 3. Include these libraries in the controlDict of your own test case:
    libs           ("libMyrigidBodyDynamics2.so" "libMyrigidBodyMeshMotion2.so");
+(Compilation was tested on linux.)
 
 ## Running
 1. Load locally OpenFOAM v2206
