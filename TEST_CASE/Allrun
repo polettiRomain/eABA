@@ -17,5 +17,5 @@ echo Preparing complete grid ...
 cd ../All
 ./Allrun.pre 
 
-mpirun -np 28 overPimpleDyMFoam -parallel >log.overPimpleDyMFoam
+mpirun -np 28 overPimpleDyMFoam -parallel >log.overPimpleDyMFoam &
 #------------------------------------------------------------------------------
