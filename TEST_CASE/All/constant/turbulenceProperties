@@ -17,42 +17,6 @@ FoamFile
 
 
 
-simulationType  laminar; //LES; //RAS;
-
-/*LES
-{
-    turbulence      on;
-    LESModel        dynamicKEqn;
-    delta           cubeRootVol;
-
-
-dynamicKEqnCoeffs
-{
-filter simple;
-}
-
-cubeRootVolCoeffs
-{
-    // Optional entries
-
-    // Multiplier
-    deltaCoeff      1;
-}
-
-}
-
-
-
-
-/*
-RAS
-{
-    RASModel        kEpsilon;
-
-    turbulence      on;
-
-    printCoeffs     on;
-}
-*/
+simulationType  laminar; 
 
 // ************************************************************************* //
