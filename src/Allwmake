@@ -1,0 +1,12 @@
+#!/bin/sh
+# Run from OPENFOAM top-level directory only
+cd "${0%/*}" || exit
+
+cd rigidBodyDynamics/
+wclean
+wmake > log.wmake
+
+cd ../rigidBodyMeshMotion/
+wclean
+wmake > log.wmake
+#------------------------------------------------------------------------------
