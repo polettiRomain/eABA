@@ -15,4 +15,7 @@ This GitHub contains the src library and a test case. The test case is a simplif
 
 ## Running
 1. Load locally OpenFOAM v2206
-2. Run with the Allrun script in the TEST_CASE folder 
+2. Run with the Allrun script in the TEST_CASE folder
+
+## Questions
+Please contact romain.poletti@vki.ac.be
