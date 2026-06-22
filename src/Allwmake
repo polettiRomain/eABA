@@ -2,11 +2,11 @@
 # Run from OPENFOAM top-level directory only
 cd "${0%/*}" || exit
 
-cd rigidBodyDynamics/
+cd ../rigidBodyMeshMotion/
 wclean
 wmake > log.wmake
 
-cd ../rigidBodyMeshMotion/
+cd rigidBodyDynamics/
 wclean
 wmake > log.wmake
 #------------------------------------------------------------------------------
