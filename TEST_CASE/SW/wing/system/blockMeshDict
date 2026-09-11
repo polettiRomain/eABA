@@ -1,0 +1,432 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// https://www.openfoam.com/documentation/guides/latest/doc/openfoam-guide-expression-syntax.html
+
+#include        "./../All/system/domainSetting"
+
+scale   0.001;
+
+chord_root #eval "4/degToRad(180)*$chord";
+span2 #eval "$span/2";
+
+thickOverset #eval "$chord*$factorChord";
+thickX #eval "$thickOverset";
+thickY #eval "$thickOverset";
+thickZ #eval "$thickOverset";
+
+Xcut 1; // Not used here
+
+// Diamond tip
+factorSpanCut 0.3;
+Xtip #eval "$span - $span*$factorSpanCut";
+Ztip #eval "sqrt((1 - sqr($Xtip/$span)))*$chord_root/2";
+XpeakLos #eval "$Xtip - $Ztip";
+chord_root2 #eval "$chord_root/2 + $thickOverset";
+s2 #eval "$span + $thickOverset";
+X2tip #eval "(2*$XpeakLos + sqrt( 4*sqr($XpeakLos) - 4*(sqr($XpeakLos)-sqr($chord_root2))*(1+sqr($chord_root2)/sqr($s2)) )) / (2*(1+sqr($chord_root2)/sqr($s2)))";
+Z2tip #eval "$X2tip-$XpeakLos";
+
+Xtipm #eval "$Xtip";
+Ztipm #eval "-$Ztip";
+X2tipm #eval "$X2tip";
+Z2tipm #eval "-$Z2tip";
+
+// Dimension of the hole
+X0_hole 0; 
+X1_hole #eval "($span)/1000";     
+Y0_hole #eval "-$thickness/1000"; 
+Y1_hole #eval "$thickness/1000"; 
+Z0_hole #eval "-$chord_root/2/1000";
+Z1_hole #eval "$chord_root/2/1000";
+
+// Body-fitted grid
+OST0_X0  #eval "-$thickX"; 
+OST0_Y0  #eval "-$thickness/2";  
+OST0_Y00  #eval "-$thickness/2 - $thickY";
+OST0_X1  #eval "$X0_hole + $span + $thickX";
+OST0_Y1  #eval "$thickness/2";  
+OST0_Y11  #eval "$thickness/2 + $thickY";  
+Xmid #eval "$X0_hole + $span";
+
+
+Zmid 0; 
+Zell_up #eval "$Zmid + $chord_root/2";
+Zell_down #eval "$Zmid - $chord_root/2";
+Z0 #eval "$Zmid -$chord_root/2 - $thickZ";
+Z1 #eval "$Zmid + $chord_root/2 + $thickZ";
+
+N_z 35; //c6-35-0.003 50 40 first setting
+N_x #eval "ceil($N_z*($span+2*$thickX)/($chord+2*$thickZ))";
+N_y #eval "ceil($N_z*($thickness+2*$thickY)/($chord+2*$thickZ))";
+
+// Interpolation point to define the ellipsoid shape in the edges part
+// Not used
+chord_span2 #eval "sqrt(3)/2*4/degToRad(180)*$chord/2"; 
+mchord_span2 #eval "-$chord_span2"; 
+span22 #eval "($OST0_X1-$X0_hole)/2";
+chord2_span2 #eval "sqrt(3)/2*($Z1-$Zmid)"; 
+mchord2_span2 #eval "-$chord2_span2"; 
+
+// Number of cells
+/*
+Nx0 20;  //92;
+Nz0 5; //20;
+Nell 60; //40
+Ny 20;
+*/
+
+Nx0 12;//39;  //92;
+Nx0_grad 18;
+Nz0 20; //20;
+Nell 20; //40
+Ny 18;//$Nx0;
+Nthick 1;
+
+gradZm 10; 
+gradZp 0.1;
+
+gradZm2   10; //2.857142857;
+gradZp2  0.1; //0.35;
+
+gradXm 2;
+gradXp 0.5;
+
+gradYm 10;
+gradYp 0.1;
+
+vertices
+(
+// block 0
+($OST0_X0 $OST0_Y1 $Zmid)
+($X0_hole $OST0_Y1 $Zmid)
+($X0_hole $OST0_Y1 $Zell_up)
+($OST0_X0 $OST0_Y1 $Zell_up)
+($OST0_X0 $OST0_Y0 $Zmid)
+($X0_hole $OST0_Y0 $Zmid)
+($X0_hole $OST0_Y0 $Zell_up)
+($OST0_X0 $OST0_Y0 $Zell_up)
+
+// block 1 
+($X0_hole $OST0_Y1 $Z1) //8
+($OST0_X0 $OST0_Y1 $Z1)
+($X0_hole $OST0_Y0 $Z1)
+($OST0_X0 $OST0_Y0 $Z1)
+
+// block 2
+($Xtip    $OST0_Y1 $Ztip) //12
+($X2tip   $OST0_Y1 $Z2tip)
+($Xtip    $OST0_Y0 $Ztip) 
+($X2tip   $OST0_Y0 $Z2tip)
+
+// block 3
+($Xmid    $OST0_Y1 $Zmid) //12
+($OST0_X1 $OST0_Y1 $Zmid)
+($Xmid    $OST0_Y0 $Zmid) 
+($OST0_X1 $OST0_Y0 $Zmid)
+
+
+// block 4
+($OST0_X0 $OST0_Y1 $Zell_down) //20
+($X0_hole $OST0_Y1 $Zell_down)
+($OST0_X0 $OST0_Y0 $Zell_down)
+($X0_hole $OST0_Y0 $Zell_down)
+
+// block 5
+($OST0_X0 $OST0_Y1 $Z0) //24
+($X0_hole $OST0_Y1 $Z0)
+($OST0_X0 $OST0_Y0 $Z0)
+($X0_hole $OST0_Y0 $Z0)
+
+// block 6
+($Xtipm    $OST0_Y1 $Ztipm) //28
+($X2tipm   $OST0_Y1 $Z2tipm)
+($Xtipm    $OST0_Y0 $Ztipm) 
+($X2tipm   $OST0_Y0 $Z2tipm)
+
+// block 7
+
+// Y+ Z+ 
+// block 8
+($OST0_X0 $OST0_Y11 $Zmid) //32
+($X0_hole $OST0_Y11 $Zmid) //33
+($X0_hole $OST0_Y11 $Zell_up)
+($OST0_X0 $OST0_Y11 $Zell_up)
+
+// block 9
+($X0_hole $OST0_Y11 $Z1) //36
+($OST0_X0 $OST0_Y11 $Z1)
+
+// block 10
+($Xtip    $OST0_Y11 $Ztip) //38
+($X2tip $OST0_Y11   $Z2tip)
+
+// block 11
+($Xmid    $OST0_Y11 $Zmid) //40
+($OST0_X1 $OST0_Y11   $Zmid)
+
+// Y+ Z-
+
+// block 12
+($OST0_X0 $OST0_Y11 $Zell_down) // 42
+($X0_hole $OST0_Y11 $Zell_down)
+
+// block 13
+($OST0_X0 $OST0_Y11 $Z0) //44
+($X0_hole $OST0_Y11 $Z0) 
+
+// block 14
+($Xtipm    $OST0_Y11 $Ztipm) //46
+($X2tipm $OST0_Y11   $Z2tipm)
+
+// POINT 48, 49 and 50
+($XpeakLos $OST0_Y11 $Zmid)
+($XpeakLos $OST0_Y1 $Zmid)
+($XpeakLos $OST0_Y0 $Zmid)
+
+// block 15 16 17 18
+
+// Y- Z+ 
+// block 19
+($OST0_X0 $OST0_Y00 $Zmid) //51
+($X0_hole $OST0_Y00 $Zmid) 
+($X0_hole $OST0_Y00 $Zell_up) 
+($OST0_X0 $OST0_Y00 $Zell_up) 
+
+// block 20
+($X0_hole $OST0_Y00 $Z1) //55
+($OST0_X0 $OST0_Y00 $Z1) 
+
+// block 21
+($Xtip   $OST0_Y00 $Ztip) // 57
+($X2tip $OST0_Y00 $Z2tip)
+
+// block 22
+($Xmid    $OST0_Y00 $Zmid) //59
+($OST0_X1 $OST0_Y00   $Zmid)
+
+// Y- Z- 
+
+// block 23
+($OST0_X0 $OST0_Y00 $Zell_down) // 61
+($X0_hole $OST0_Y00 $Zell_down)
+
+// block 24
+($OST0_X0 $OST0_Y00 $Z0) //63
+($X0_hole $OST0_Y00 $Z0) 
+
+// block 25
+($Xtipm  $OST0_Y00 $Ztipm) //65
+($X2tipm $OST0_Y00   $Z2tipm)
+
+// POINT 48 and 49
+($XpeakLos $OST0_Y00 $Zmid) //67
+
+
+);
+
+blocks
+(
+
+    hex (0 1 2 3 4 5 6 7)             ($Nx0 $Nz0 $Nthick)  simpleGrading ($gradXp 1 1) //0
+    hex (3 2 8 9 7 6 10 11)           ($Nx0 $Nx0_grad $Nthick)  simpleGrading ($gradXp $gradZm 1) 
+    hex (2 12 13 8 6 14 15 10)        ($Nell $Nx0_grad $Nthick) simpleGrading (1 $gradZm 1)
+    hex (12 16 17 13 14 18 19  15)    ($Nz0 $Nx0_grad $Nthick) simpleGrading (1 $gradZm 1) // P2
+    hex (20 21 1 0 22 23 5 4)         ($Nx0 $Nz0 $Nthick)  simpleGrading ($gradXp 1 1)   
+    hex (24 25 21 20 26 27 23 22)     ($Nx0 $Nx0_grad  $Nthick) simpleGrading ($gradXp $gradZp 1)
+    hex (25 29 28 21 27 31 30 23)     ($Nell $Nx0_grad $Nthick) simpleGrading (1 $gradZp 1)
+    hex (29 17 16 28 31 19 18 30)     ($Nz0 $Nx0_grad $Nthick) simpleGrading (1 $gradZp  1)   // P2
+
+    // Yup
+    // Yup-Zup 
+    hex (32 33 34 35 0 1 2 3)     ($Nx0 $Nz0 $Ny) simpleGrading  ($gradXp 1 $gradYp)
+    hex (35 34 36 37 3 2 8 9)     ($Nx0 $Nx0_grad $Ny) simpleGrading  ($gradXp $gradZm  $gradYp)
+    hex (34 38 39 36 2 12 13 8)   ($Nell $Nx0_grad $Ny) simpleGrading (1 $gradZm $gradYp)
+    hex (38 40 41 39 12 16 17 13) ($Nz0 $Nx0_grad $Ny) simpleGrading (1 $gradZm  $gradYp) // P2 
+
+    // Yup-Zlow 
+    hex (42 43 33 32 20 21 1 0)    ($Nx0 $Nz0 $Ny) simpleGrading  ($gradXp 1 $gradYp)
+    hex (44 45 43 42 24 25 21 20)  ($Nx0 $Nx0_grad $Ny) simpleGrading  ($gradXp $gradZp $gradYp)
+    hex (45 47 46 43 25 29 28 21)  ($Nell $Nx0_grad $Ny) simpleGrading (1 $gradZp $gradYp)
+    hex (47 41 40 46 29 17 16 28)  ($Nz0 $Nx0_grad $Ny) simpleGrading  (1 $gradZp $gradYp) // // ellipsoid  13 // !! grading
+ 
+    // Ellipsoid
+    hex (33 48 38 34 1 49 12 2)      ($Nell $Nz0 $Ny) simpleGrading  (1 1 $gradYp)  // ell-up
+    hex (43 46 48 33 21 28 49 1)     ($Nell $Nz0 $Ny) simpleGrading  (1 1 $gradYp)  // ell-down
+    hex (38 48 46 40 12 49 28 16)    ($Nz0 $Nz0 $Ny) simpleGrading   (1 1 $gradYp)  // losange
+
+    // Ydown
+    // Zup
+    hex (4 5 6 7 51 52 53 54)       ($Nx0 $Nz0 $Ny)  simpleGrading ($gradXp 1 $gradYm)
+    hex (7 6 10 11 54 53 55 56)     ($Nx0 $Nx0_grad $Ny)  simpleGrading ($gradXp $gradZm $gradYm)
+    hex (6 14 15 10 53 57 58 55)    ($Nell $Nx0_grad $Ny) simpleGrading (1 $gradZm $gradYm)   
+    hex (14 18 19 15 57 59 60 58)   ($Nz0 $Nx0_grad $Ny)  simpleGrading (1 $gradZm $gradYm) // P2
+
+    // Zdown
+    hex (22 23 5 4 61 62 52 51)     ($Nx0 $Nz0 $Ny) simpleGrading ($gradXp 1 $gradYm)
+    hex (26 27 23 22 63 64 62 61)    ($Nx0 $Nx0_grad $Ny) simpleGrading ($gradXp $gradZp $gradYm)
+    hex (27 31 30 23 64 66 65 62)   ($Nell $Nx0_grad $Ny) simpleGrading (1 $gradZp $gradYm)
+    hex (31 19 18 30 66 60 59 65)   ($Nz0 $Nx0_grad $Ny) simpleGrading (1 $gradZp $gradYm)// ellipsoid  // !! grading 
+
+    // Ellipsoid
+    hex (5 50 14 6 52 67 57 53)      ($Nell $Nz0 $Ny) simpleGrading  (1 1 $gradYm)  // ell-up
+    hex (23 30 50 5 62 65 67 52)     ($Nell $Nz0 $Ny) simpleGrading  (1 1 $gradYm)  // ell-down
+    hex (14 50 30 18 57 67 65 59)    ($Nz0 $Nz0 $Ny) simpleGrading   (1 1 $gradYm)  // losange
+
+
+
+);
+
+
+edges
+( 
+// YLevel 0
+//// up 
+#include "edges/2_12.txt" 
+#include "edges/6_14.txt"
+#include "edges/8_13.txt"
+#include "edges/10_15.txt"
+#include "edges/12_16.txt" // p2
+#include "edges/14_18.txt"
+#include "edges/13_17.txt"
+#include "edges/15_19.txt"
+
+
+//// down
+#include "edges/21_28.txt" 
+#include "edges/23_30.txt"
+#include "edges/25_29.txt"
+#include "edges/27_31.txt"
+#include "edges/28_16.txt" // p2
+#include "edges/30_18.txt"
+#include "edges/29_17.txt"
+#include "edges/31_19.txt"
+
+// YLevel 1
+//// up 
+#include "edges/34_38.txt" 
+#include "edges/36_39.txt"
+#include "edges/38_40.txt" // p2
+#include "edges/39_41.txt"
+
+//// down
+#include "edges/43_46.txt" 
+#include "edges/45_47.txt"
+#include "edges/46_40.txt" // p2
+#include "edges/47_41.txt"
+
+
+// YLevel -1
+//// up 
+#include "edges/53_57.txt" 
+#include "edges/55_58.txt"
+#include "edges/57_59.txt" // p2
+#include "edges/58_60.txt"
+
+//// down
+#include "edges/62_65.txt" 
+#include "edges/64_66.txt"
+#include "edges/65_59.txt" // p2
+#include "edges/66_60.txt"
+
+);
+
+
+boundary
+(
+
+   overset2
+    {
+        type        overset;
+        faces
+        (
+	    (0 4 7 3)
+            (3 7 11 9)
+	    (9 11 10 8)
+	    (8 10 13 15)
+	    (13 15 19 17)
+	    (17 19 31 29)
+ 	    (29 31 27 25)
+	    (25 27 26 24)
+	    (24 26 22 20)
+	    (20 22 4 0) 
+	    (32 0 3 35)  // 1
+	    (35 3 9 37)
+	    (37 9 8 36)
+	    (36 8 13 39)
+	    (39 13 17 41)
+	    (41 17 29 47)
+	    (47 29 25 45)
+	    (45 25 24 44)
+	    (44 24 20 42)
+	    (42 20 0 32)
+	    (4 51 54 7) //
+	    (7 54 56 11)
+	    (11 56 55 10)
+	    (10 55 58 15)
+	    (15 58 60 19)
+	    (19 60 66 31)
+	    (31 66 64 27)
+	    (27 64 63 26)
+	    (26 63 61 22)
+	    (22 61 51 4) 
+	    (32 33 34 35) //
+	    (35 34 36 37)
+	    (34 38 39 36)
+	    (38 40 41 39)
+	    (40 46 47 41)
+	    (45 47 46 43)
+	    (44 45 43 42)
+	    (42 43 33 32)
+	    (33 48 38 34)
+ 	    (38 48 46 40) 
+	    (43 46 48 33)
+	    (51 52 53 54) //
+	    (54 53 55 56) 
+	    (53 57 58 55) 
+	    (57 59 60 58)
+	    (59 65 66 60)
+	    (64 66 65 62)
+	    (63 64 62 61)
+	    (61 62 52 51) 
+	    (52 67 57 53)
+	    (57 67 65 59)
+	    (62 65 67 52)
+
+        );
+    }
+
+     hole
+    {
+        type wall;
+        faces
+        (
+	 (1 5 6 2)
+	 (2 6 14 12)
+         (12 14 18 16)
+         (16 18 30 28)
+	 (28 30 23 21)
+	 (21 23 5 1)
+	 (1 49 12 2)
+	 (12 49 28 16)
+	 (21 28 49 1)
+	 (5 50 14 6)
+	 (14 50 30 18)
+	 (23 30 50 5)
+        );
+    }
+);
+
+// ************************************************************************* //

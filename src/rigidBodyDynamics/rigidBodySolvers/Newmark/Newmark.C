@@ -84,36 +84,78 @@ void Foam::RBD::rigidBodySolvers::Newmark::solve
     Field<spatialVector> rfx(fx);
     model_.applyRestraints(rtau, rfx, state());
 
-    // Load the imposed q, qDot, qDdot for the active joints  
+    // Load the imposed q, qDot, qDdot for the joints for which the motion is user-defined 
     Field<label>  indexImposedJoints(model_.nBodies(), Zero); // dummy init, parameter updated inside applyImposedMotion
-    Field<scalar> imposedJoints(model_.nBodies(), Zero);      // dummy init, parameter updated inside applyImposedMotion
+    Field<scalar> imposedJoints(model_.nBodies(), Zero); // dummy init, parameter updated inside applyImposedMotion
     model_.applyImposedMotion(indexImposedJoints,imposedJoints);
-
-    // Calculate the accelerations for the given state and forces
-    model_.forwardDynamics(state(), rtau, rfx,indexImposedJoints,imposedJoints);
-
-    // Correct velocity
-    qDot() = qDot0()
-      + deltaT()*(gamma_*qDdot() + (1 - gamma_)*qDdot0());
- 
-    // Correct position
-    q() = q0()
-      + deltaT()*qDot0()
-      + sqr(deltaT())*(beta_*qDdot() + (0.5 - beta_)*qDdot0());
-
-
-
+    
     // 2. Set the joint motion to the "imposed" joints only
     int j = 0;
     forAll(indexImposedJoints, i)
     {	
          label qi = indexImposedJoints[i];
-         Info << qi << endl;
+         //Info << qi << endl;
 	 q()[qi] = imposedJoints[j];
 	 qDot()[qi] = imposedJoints[j+1];
 	 qDdot()[qi] = imposedJoints[j+2];
 	 j+= 3;
     }
+    
+   //3. Freeze the passsive dof until a user-defined time is reached 
+   scalar t = model_.time().value();
+   if (t < 0.0125) 
+	{
+	    bool isImposed;
+	    for (label i=0; i<model_.nDoF(); i++)
+	    {
+		    isImposed = false;
+		    forAll(indexImposedJoints, j)
+		    {
+			if (indexImposedJoints[j] == i)
+			{
+				isImposed = true;
+				break;
+			}
+		    }	
+		    if (!isImposed) 
+	 	    { 
+	    		q()[i] =0;
+	    		qDot()[i] =0;
+	    		qDdot()[i] =0;
+		    }
+	    }
+	}
+
+
+
+    //4. Calculate the accelerations for the given state and forces
+    model_.forwardDynamics(state(), rtau, rfx,indexImposedJoints,imposedJoints);
+   
+   //5. Integrate the passive dof after the user-defined time is reached
+   if (t >= 0.0125)
+   {
+	    bool isImposed;
+	    for (label i=0; i<model_.nDoF(); i++)
+	    {
+		    isImposed = false;
+		    forAll(indexImposedJoints, j)
+		    {
+			if (indexImposedJoints[j] == i)
+			{
+				isImposed = true;
+				break;
+			}
+		    }	
+		    if (!isImposed) 
+	 	    { 
+
+	    		qDot()[i] = qDot0()[i] + deltaT()*(gamma_*qDdot()[i] + (1 - gamma_)*qDdot0()[i]);
+	    		q()[i]    = q0()[i] + deltaT()*qDot0()[i] + sqr(deltaT())*(beta_*qDdot()[i] + (0.5 - beta_)*qDdot0()[i]);
+		    }
+	    }
+    }
+
+
 
       Info << "qDdot_newmark= " << qDdot() << endl;
       Info << "qDot_newmark= " << qDot() << endl;

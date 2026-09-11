@@ -110,8 +110,8 @@ void Foam::RBD::ImposedMotion::wangParametrization::loadImposedMotion
 			jointIndex    = jointList_;
 			imposedJoints = varList;
 
-			Info << "PitchingAngle(" << q_alpha << endl;
-			Info << "FlappingAngle(" << q_phi << endl;
+			Info << "PitchingAngle:" << q_alpha << endl;
+			Info << "FlappingAngle:" << q_phi << endl;
 
 		}
 		else

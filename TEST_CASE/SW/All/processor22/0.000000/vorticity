@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2206                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       volVectorField;
+    location    "0.000000";
+    object      vorticity;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    walls
+    {
+        type            calculated;
+        value           uniform (0 0 0);
+    }
+    overset2
+    {
+        type            overset;
+        value           nonuniform List<vector> 0();
+    }
+    hole
+    {
+        type            calculated;
+        value           nonuniform List<vector> 0();
+    }
+    procBoundary22to2
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to3
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to5
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to6
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to17
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to20
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to21
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to23
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to24
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to25
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+    procBoundary22to26
+    {
+        type            processor;
+        value           uniform (0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

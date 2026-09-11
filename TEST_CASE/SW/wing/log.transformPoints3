@@ -1,0 +1,34 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2206                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _da9441b0-20260127 OPENFOAM=2206 patch=260127 version=2206
+Arch   : "LSB;label=32;scalar=64"
+Exec   : transformPoints -rollPitchYaw (0 -45 0)
+Date   : Sep 11 2026
+Time   : 12:23:17
+Host   : ealin29.private.vki.eu
+PID    : 1358310
+I/O    : uncollated
+Case   : /data/backup/poletti/poletti/GIT_OPENFOAM_ARTICLE/eABA/TEST_CASE/SW/wing
+nProcs : 1
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Rotating points by
+    roll  0
+    pitch -45
+    yaw   0
+Rotating points by (0.707107 -0 -0.707107 0 1 -0 0.707107 0 0.707107)
+Writing points into directory "constant/polyMesh"
+
+
+End
+

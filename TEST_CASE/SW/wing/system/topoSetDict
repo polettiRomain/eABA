@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include        "./system/blockMeshDict"
+actions
+(
+    {
+        name    hole;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        //box     (0.0 -0.001 -0.005)(0.05 0.001 0.005);
+	//box     (0.04 -0.001 -0.005)(0.09 0.001 0.005);
+	box     ($X0_hole $Y0_hole $Z0_hole)($X1_hole $Y1_hole $Z1_hole);	
+    }
+
+    {
+        name    hole;
+        type    cellSet;
+        action  invert;
+    }
+);
+
+// ************************************************************************* //

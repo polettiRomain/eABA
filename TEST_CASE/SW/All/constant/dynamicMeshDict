@@ -1,0 +1,171 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include        "./system/domainSetting"
+//calculate omega in rad/s
+omega_calc #eval "$flap_freq*2*pi()";
+
+dynamicFvMesh       dynamicOversetFvMesh;
+
+report          on;
+reportToFile    on;
+rho             rhoInf;
+rhoInf          1.2;
+
+solvers 
+{
+
+
+	backgroundZone
+	{
+		motionSolverLibs (fvMotionSolvers);
+
+		motionSolver            solidBody;
+		solidBodyMotionFunction drivenLinearMotion;
+
+		cellSet                 c0;
+		cOfGdisplacement        CofG;
+
+	}
+
+	droneZone
+	{
+
+motionSolverLibs    (rigidBodyMeshMotion);
+motionSolver        rigidBodyMotion;
+
+report          on;
+reportToFile    on;
+rho             rhoInf;
+rhoInf          1.2;
+cellSet         c1;
+cOfGdisplacement    CofG;
+bodyIdCofG          1;
+
+
+rigidBodyMotionCoeffs
+{
+
+report          on;
+rho             rhoInf;
+rhoInf          1.2;
+
+cellSet         c1;
+cOfGdisplacement    CofG;
+bodyIdCofG          2;
+
+solver
+{
+    type Newmark;
+    //gamma   0.1;    // Velocity integration coefficient
+    //beta    0.1;    // Position integration coefficient
+}
+
+accelerationRelaxation 1;
+g  	(0 0 -9.81);
+
+
+nIter   3;
+
+bodies
+{
+    wing_body
+    {
+        type            rigidBody;
+        parent          root;
+        report          on;
+        reportToFile    on;
+
+
+        mass            1.5e-03;
+        centreOfMass   (0 0 0); // relative to the centreOfMass
+        inertia             (4.2e-6 0 0 4.2e-6 0 4.2e-6);
+                                        // of parent body
+                                        // (here root = global coord system)
+
+        // Transformation tensor and centre of rotation (CoR)
+        transform       (1 0 0 0 1 0 0 0 1)(0 0 0);
+  patches         (hole);
+  
+  innerDistance   100;    // With overset we want to avoid the mesh
+                          // deformation so have large innerDistance
+  outerDistance   200;
+ 
+
+    joint
+        {
+
+            type            composite;
+            joints
+            (
+
+                {
+                    type Pz;  // 0
+                }
+                {
+                    type Px;  // 1
+                }
+                {
+                    type Rz;  // 3
+                }
+
+                {
+                     type Ry;  // 4
+                }
+
+            );
+        }
+
+
+    }
+
+  }
+
+restraints {}
+
+ImposedMotion
+    {
+
+      wingFlapping
+      {
+                    type              wangParametrization;
+
+		    jointList (2 3);
+                    motionType        "midStart"; 
+                    body              wing_body;
+
+                    Aphi              -1.30899694; 
+                    fphi              20;
+                    Kphi 0.01;
+
+                    Aalpha            0.78; 
+                    falpha            20;
+                    Kalpha            0.01;	
+
+	           initialConditions (0 0); 
+	           
+
+        }
+      }
+
+}
+
+} // end of solver_drone
+
+} // end of solvers
+
+
+// ************************************************************************* //

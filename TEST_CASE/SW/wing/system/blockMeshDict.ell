@@ -1,0 +1,299 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// https://www.openfoam.com/documentation/guides/latest/doc/openfoam-guide-expression-syntax.html
+
+#include        "./../All/system/domainSetting"
+
+scale   0.001;
+
+chord_root #eval "4/degToRad(180)*$chord";
+span2 #eval "$span/2";
+
+
+//chord_spantestt #eval "$chord_root*test"
+//chord_spantest #eval "$chord_span2*test"
+
+thickOverset #eval "$chord*$factorChord";
+thickX #eval "$thickOverset";
+thickY #eval "$thickOverset";
+thickZ #eval "$thickOverset";
+
+// Dimension of the hole: used by topoSet
+X0_hole 0; //#eval "$thickOverset/1000";
+X1_hole #eval "($span)/1000";     //"($thickOverset+$span)/1000";
+Y0_hole #eval "-$thickness/1000"; // +0.0001
+Y1_hole #eval "$thickness/1000"; // +0.0001
+Z0_hole #eval "-$chord_root/2/1000";
+Z1_hole #eval "$chord_root/2/1000";
+
+// Body-fitted grid
+OST0_X0  #eval "-$thickX"; //#eval "-$thickX";
+OST0_Y0  #eval "-$thickness/2";  
+OST0_Y00  #eval "-$thickness/2 - $thickY";
+OST0_X1  #eval "$X0_hole + $span + $thickX";
+OST0_Y1  #eval "$thickness/2";  
+OST0_Y11  #eval "$thickness/2 + $thickY";  
+Xmid #eval "$X0_hole + $span";
+
+
+Zmid 0;
+Zell_up #eval "$Zmid + $chord_root/2";
+Zell_down #eval "$Zmid - $chord_root/2";
+Z0 #eval "$Zmid -$chord_root/2 - $thickZ";
+Z1 #eval "$Zmid + $chord_root/2 + $thickZ";
+
+N_z 35; //c6-35-0.003 50 40 first setting
+N_x #eval "ceil($N_z*($span+2*$thickX)/($chord+2*$thickZ))";
+N_y #eval "ceil($N_z*($thickness+2*$thickY)/($chord+2*$thickZ))";
+
+// Interpolation point to define the ellipsoid shape in the edges part
+chord_span2 #eval "sqrt(3)/2*4/degToRad(180)*$chord/2"; 
+mchord_span2 #eval "-$chord_span2"; 
+span22 #eval "($OST0_X1-$X0_hole)/2";
+chord2_span2 #eval "sqrt(3)/2*($Z1-$Zmid)"; 
+mchord2_span2 #eval "-$chord2_span2"; 
+
+Nz_block 20;
+
+gradZm 8.95;
+gradZp 0.111731843575419;
+
+Nz_Othick 24;
+
+vertices
+(
+// block 0
+($OST0_X0 $OST0_Y1 $Zmid)
+($X0_hole $OST0_Y1 $Zmid)
+($X0_hole $OST0_Y1 $Zell_up)
+($OST0_X0 $OST0_Y1 $Zell_up)
+($OST0_X0 $OST0_Y0 $Zmid)
+($X0_hole $OST0_Y0 $Zmid)
+($X0_hole $OST0_Y0 $Zell_up)
+($OST0_X0 $OST0_Y0 $Zell_up)
+
+// block 1 
+($X0_hole $OST0_Y1 $Z1) //8
+($OST0_X0 $OST0_Y1 $Z1)
+($X0_hole $OST0_Y0 $Z1)
+($OST0_X0 $OST0_Y0 $Z1)
+
+// block 2
+($Xmid    $OST0_Y1 $Zmid) //12
+($OST0_X1 $OST0_Y1 $Zmid)
+($Xmid    $OST0_Y0 $Zmid) 
+($OST0_X1 $OST0_Y0 $Zmid)
+
+// block 3
+($OST0_X0 $OST0_Y1 $Zell_down) //16
+($X0_hole $OST0_Y1 $Zell_down)
+($OST0_X0 $OST0_Y0 $Zell_down)
+($X0_hole $OST0_Y0 $Zell_down)
+
+// block 4
+($OST0_X0 $OST0_Y1 $Z0) //20
+($X0_hole $OST0_Y1 $Z0)
+($OST0_X0 $OST0_Y0 $Z0)
+($X0_hole $OST0_Y0 $Z0)
+
+// block 5
+
+// block 6
+($OST0_X0 $OST0_Y11 $Zmid) //24
+($X0_hole $OST0_Y11 $Zmid) // 25
+($X0_hole $OST0_Y11 $Zell_up)
+($OST0_X0 $OST0_Y11 $Zell_up)
+
+// block 7
+($X0_hole $OST0_Y11 $Z1) //28
+($OST0_X0 $OST0_Y11 $Z1)
+
+// block 8
+($Xmid    $OST0_Y11 $Zmid) // 30
+($OST0_X1 $OST0_Y11 $Zmid)
+
+// block 9
+
+// block 10
+($OST0_X0 $OST0_Y11 $Zell_down) // 32
+($X0_hole $OST0_Y11 $Zell_down)
+
+// block 11
+($OST0_X0 $OST0_Y11 $Z0) //34
+($X0_hole $OST0_Y11 $Z0) // 35
+
+// block 12
+
+// block 13
+
+// block14
+($OST0_X0 $OST0_Y00 $Zmid) //36
+($X0_hole $OST0_Y00 $Zmid) //37
+($X0_hole $OST0_Y00 $Zell_up) //38 
+($OST0_X0 $OST0_Y00 $Zell_up) //39
+
+// block15
+($X0_hole $OST0_Y00 $Z1) //40
+($OST0_X0 $OST0_Y00 $Z1) //41
+
+// block16
+($Xmid    $OST0_Y00 $Zmid) // 42
+($OST0_X1 $OST0_Y00 $Zmid)
+
+// block 17
+
+// block 18
+($OST0_X0 $OST0_Y00 $Zell_down) // 44
+($X0_hole $OST0_Y00 $Zell_down)
+
+// block 19
+($OST0_X0 $OST0_Y00 $Z0) //46
+($X0_hole $OST0_Y00 $Z0) //47
+
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7)          ($Nz_block 8 1) simpleGrading (1 1 1) //0
+    hex (3 2 8 9 7 6 10 11)        ($Nz_block 24 1) simpleGrading (1 8.95 1) 
+    hex (2 12 13 8 6 14 15 10)     (24 24 1) simpleGrading (1 8.95 1)
+    hex (16 17 1 0 18 19 5 4)      ($Nz_block 8 1) simpleGrading (1 1 1)
+    hex (20 21 17 16 22 23 19 18)  ($Nz_block 24 1) simpleGrading (1 0.111731843575419 1)
+    hex (21 13 12 17 23 15 14 19)  (24 24 1) simpleGrading (1 0.111731843575419 1)  
+    // Yup
+    // Yup-Zup 
+    hex (24 25 26 27 0 1 2 3)     ($Nz_block 8 $Nz_Othick) simpleGrading  (1 1 $gradZp)
+    hex (27 26 28 29 3 2 8 9)     ($Nz_block 24 $Nz_Othick) simpleGrading (1 8.95 $gradZp)
+    hex (26 30 31 28 2 12 13 8)   (24 24 $Nz_Othick) simpleGrading (1 8.95 $gradZp)
+    hex (25 30 30 26 1 12 12 2)   (24 8 $Nz_Othick) simpleGrading  (1 1 $gradZp) // ellipsoid 9
+    // Yup-Zlow 
+    hex (32 33 25 24 16 17 1 0)    ($Nz_block 8 $Nz_Othick) simpleGrading  (1 1 $gradZp)
+    hex (34 35 33 32 20 21 17 16)  ($Nz_block 24 $Nz_Othick) simpleGrading (1 0.111731843575419 $gradZp)
+    hex (35 31 30 33 21 13 12 17)  (24 24 $Nz_Othick) simpleGrading (1 0.111731843575419 $gradZp)
+    hex (25 33 30 30 1 17 12 12)   (8 24 $Nz_Othick) simpleGrading  (1 1 $gradZp) // // ellipsoid  13 // !! grading
+    // Ydown
+    // Zup
+    hex (4 5 6 7 36 37 38 39)       ($Nz_block 8 $Nz_Othick) simpleGrading (1 1 $gradZm)
+    hex (7 6 10 11 39 38 40 41)     ($Nz_block 24 $Nz_Othick) simpleGrading (1 $gradZm $gradZm)
+    hex (6 14 15 10 38 42 43 40)    (24 24 $Nz_Othick) simpleGrading (1 $gradZm $gradZm)   
+    hex (5 14 14 6 37 42 42 38)     (24 8 $Nz_Othick) simpleGrading (1 1 $gradZm) // ellipsoid 
+    // Zdown
+    hex (18 19 5 4 44 45 37 36)     ($Nz_block 8 $Nz_Othick) simpleGrading (1 1 $gradZm)
+    hex (22 23 19 18 46 47 45 44)   ($Nz_block 24 $Nz_Othick) simpleGrading (1 $gradZp $gradZm)
+    hex (23 15 14 19 47 43 42 45)   (24 24 $Nz_Othick) simpleGrading (1 $gradZp $gradZm)
+    hex (5 19 14 14 37 45 42 42)    (8 24 $Nz_Othick) simpleGrading (1 1 $gradZm) // ellipsoid  // !! grading 
+);
+
+
+edges
+(
+// YLevel 0
+//// up
+//arc 6 14 ($span2 $OST0_Y0 $chord_span2)
+#include "edgesOld/6_14.txt" 
+#include "edgesOld/2_12.txt"
+#include "edgesOld/8_13.txt"
+#include "edgesOld/10_15.txt"
+//// down
+#include "edgesOld/19_14.txt" 
+#include "edgesOld/17_12.txt"
+#include "edgesOld/21_13.txt"
+#include "edgesOld/23_15.txt"
+// YLevel 1
+//// Zup
+#include "edgesOld/26_30.txt" 
+#include "edgesOld/28_31.txt"
+//// Zdown
+#include "edgesOld/33_30.txt" 
+#include "edgesOld/35_31.txt"
+// YLevel -1
+//// Zup
+#include "edgesOld/38_42.txt" 
+#include "edgesOld/40_43.txt"
+//// Zdown
+#include "edgesOld/45_42.txt" 
+#include "edgesOld/47_43.txt"
+);
+
+
+boundary
+(
+    overset2
+    {
+        type        overset;
+        faces
+        (
+	    (0 4 7 3)
+            (3 7 11 9)
+	    (9 11 10 8)
+	    (8 10 15 13)
+	    (13 15 23 21)
+ 	    (21 23 22 20)
+	    (20 22 18 16)
+	    (16 18 4 0)
+	    (24 0 3 27)
+	    (27 3 9 29)
+	    (29 9 8 28)
+	    (28 8 13 31)
+	    (31 13 21 35)
+	    (35 21 20 34)
+	    (34 20 16 32)
+	    (32 16 0 24)
+	    (4 36 39 7)
+	    (7 39 41 11)
+	    (11 41 40 10)
+	    (10 40 43 15)
+	    (15 43 47 23)
+	    (23 47 46 22)
+	    (22 46 44 18)
+	    (18 44 36 4)
+	    (24 25 26 27)
+	    (27 26 28 29)
+	    (26 30 31 28)
+	    (25 30 30 26)
+	    (32 33 25 24)
+	    (34 35 33 32)
+	    (35 31 30 33)
+	    (33 30 30 25)
+ 	    (36 37 38 39)
+	    (39 38 40 41)
+	    (38 42 43 40)
+	    (37 42 42 38)
+	    (44 45 37 36)
+	    (46 47 45 44)
+	    (47 43 42 45)
+	    (45 42 42 37) 
+        );
+    }
+
+     hole
+    {
+        type wall;
+        faces
+        (
+	 (1 12 12 2)
+	 (5 14 14 6)
+         (1 17 12 12)
+         (5 19 14 14)
+	 (2 6 5 1)
+	 (1 5 19 17)
+	 (17 19 14 12)
+	 (2 6 14 12)
+        );
+    }
+);
+
+// ************************************************************************* //
